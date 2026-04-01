@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>손절계산기 — Toximeter</title>
+
+<meta property="og:title" content="손절계산기 — 이 관계, 계속해도 될까?" id="og-title">
+<meta property="og:description" content="15개 질문으로 계산하는 나의 손절지수. 당신의 관계는 몇 %?" id="og-description">
+<meta property="og:image" content="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=1200&h=630&fit=crop" id="og-image">
+<meta property="og:type" content="website">
+<meta property="og:url" content="" id="og-url">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GSBSHCWSTK"></script>
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());gtag('config','G-GSBSHCWSTK');
+</script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --red:#E8456B;--red-light:#FFF0F3;--red-dark:#C7254E;
+  --orange:#FF8A5C;--yellow:#FFD93D;--green:#6BCB77;--blue:#4D96FF;
+  --bg:#FFF9FA;--text:#2D2D2D;--text-light:#888;--card:#FFF;
+  --shadow:0 4px 24px rgba(232,69,107,0.08);--radius:16px;
+}
+body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+.container{max-width:480px;margin:0 auto;padding:0 20px;}
+
+/* ── Intro ── */
+#intro{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 20px;}
+.intro-icon{font-size:64px;margin-bottom:8px;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.intro-badge{display:inline-block;font-size:12px;font-weight:700;color:var(--red);background:var(--red-light);padding:4px 12px;border-radius:20px;margin-bottom:12px;letter-spacing:0.5px;}
+.intro-title{font-size:32px;font-weight:900;line-height:1.3;margin-bottom:8px;}
+.intro-title em{font-style:normal;color:var(--red);}
+.intro-sub{font-size:15px;color:var(--text-light);line-height:1.6;margin-bottom:24px;}
+.intro-tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:28px;}
+.intro-tag{background:#F5F0F1;font-size:12px;font-weight:500;padding:5px 12px;border-radius:16px;color:var(--text-light);}
+.type-label{font-size:13px;color:var(--text-light);font-weight:500;margin-bottom:10px;}
+.type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px;width:100%;}
+.type-btn{padding:14px 4px;border:2px solid #EEE;border-radius:14px;background:#FFF;cursor:pointer;text-align:center;transition:all .2s;}
+.type-btn:hover,.type-btn.on{border-color:var(--red);background:var(--red-light);}
+.type-btn .ic{font-size:24px;display:block;margin-bottom:2px;}
+.type-btn .lb{font-size:12px;font-weight:600;color:var(--text);}
+.btn-go{width:100%;padding:18px;background:linear-gradient(135deg,var(--red),var(--red-dark));color:#FFF;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(232,69,107,.3);font-family:inherit;transition:transform .15s;}
+.btn-go:active{transform:scale(.97);}
+.btn-go:disabled{opacity:.35;cursor:not-allowed;}
+.intro-note{margin-top:14px;font-size:11px;color:#CCC;}
+
+/* ── Quiz ── */
+#quiz{display:none;min-height:100dvh;padding:20px 0 40px;}
+.prog-area{position:sticky;top:0;background:var(--bg);padding:14px 0 10px;z-index:10;}
+.prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.prog-num{font-size:14px;font-weight:700;color:var(--red);}
+.prog-cat{font-size:12px;color:var(--text-light);}
+.prog-bar{width:100%;height:5px;background:#F0E0E4;border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:3px;transition:width .4s cubic-bezier(.22,1,.36,1);}
+.q-card{background:var(--card);border-radius:var(--radius);padding:28px 22px;box-shadow:var(--shadow);margin-top:14px;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.q-badge{font-size:12px;font-weight:600;color:var(--red);background:var(--red-light);display:inline-block;padding:3px 10px;border-radius:8px;margin-bottom:12px;}
+.q-text{font-size:17px;font-weight:700;line-height:1.55;margin-bottom:22px;word-break:keep-all;}
+.opts{display:flex;flex-direction:column;gap:9px;}
+.opt{width:100%;text-align:left;padding:13px 16px;border:2px solid #F0E0E4;border-radius:12px;background:#FFF;font-size:14px;color:var(--text);cursor:pointer;transition:all .15s;line-height:1.45;font-family:inherit;}
+.opt:hover{border-color:var(--red);background:var(--red-light);}
+.opt.on{border-color:var(--red);background:var(--red);color:#FFF;font-weight:600;}
+.nav-row{display:flex;gap:10px;margin-top:18px;}
+.btn-prev,.btn-next{flex:1;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-prev{background:#F3F3F3;color:var(--text-light);}
+.btn-next{background:var(--red);color:#FFF;box-shadow:0 2px 12px rgba(232,69,107,.2);}
+.btn-next:disabled{opacity:.35;cursor:not-allowed;}
+
+/* ── Result ── */
+#result{display:none;min-height:100dvh;padding:28px 0 60px;}
+.res-card{background:var(--card);border-radius:20px;padding:36px 22px 28px;box-shadow:var(--shadow);text-align:center;animation:fadeUp .5s ease;}
+.res-emoji{font-size:56px;margin-bottom:8px;}
+.res-badge{font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px;display:inline-block;margin-bottom:14px;}
+.res-hook{font-size:22px;font-weight:900;line-height:1.45;margin-bottom:6px;word-break:keep-all;}
+.res-hook em{font-style:normal;color:var(--red);}
+.res-sub{font-size:14px;color:var(--text-light);line-height:1.5;margin-bottom:4px;}
+
+/* 손절지수 */
+.toxicity{margin:28px 0 20px;}
+.tox-num{font-size:56px;font-weight:900;letter-spacing:-2px;}
+.tox-label{font-size:13px;color:var(--text-light);margin-top:2px;}
+.tox-gauge{position:relative;height:12px;border-radius:6px;margin:16px 12px 0;overflow:visible;}
+.tox-gauge-bg{position:absolute;inset:0;border-radius:6px;background:linear-gradient(90deg,#4D96FF 0%,#6BCB77 30%,#FFD93D 50%,#FF8A5C 70%,#E8456B 100%);}
+.tox-ptr{position:absolute;top:-7px;width:26px;height:26px;background:#FFF;border:3px solid var(--text);border-radius:50%;transform:translateX(-50%);transition:left 1s cubic-bezier(.22,1,.36,1);z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.tox-labels{display:flex;justify-content:space-between;margin-top:10px;padding:0 2px;}
+.tox-labels span{font-size:10px;color:var(--text-light);}
+
+/* 더보기 collapsible */
+.detail-toggle{margin-top:24px;padding:14px;background:#F9F4F5;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text);transition:background .2s;user-select:none;text-align:center;}
+.detail-toggle:hover{background:#F0E5E8;}
+.detail-toggle .arrow{display:inline-block;transition:transform .3s;margin-left:4px;}
+.detail-toggle.open .arrow{transform:rotate(180deg);}
+.detail-body{max-height:0;overflow:hidden;transition:max-height .4s ease;}
+.detail-body.open{max-height:2000px;}
+
+/* breakdown */
+.bd-title{font-size:14px;font-weight:700;margin:20px 0 12px;text-align:center;}
+.bd-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F5F0F1;}
+.bd-item:last-child{border-bottom:none;}
+.bd-ic{font-size:20px;flex-shrink:0;}
+.bd-info{flex:1;}
+.bd-name{font-size:12px;font-weight:600;margin-bottom:3px;}
+.bd-barw{height:5px;background:#F0E0E4;border-radius:3px;overflow:hidden;}
+.bd-bar{height:100%;border-radius:3px;transition:width 1s ease;}
+.bd-sc{font-size:13px;font-weight:700;flex-shrink:0;min-width:36px;text-align:right;}
+
+/* prescription */
+.rx-title{font-size:14px;font-weight:700;margin:20px 0 12px;text-align:center;}
+.rx{background:#FFF9FA;border-radius:12px;padding:14px;margin-bottom:8px;text-align:left;}
+.rx h4{font-size:13px;font-weight:700;margin-bottom:4px;}
+.rx p{font-size:12px;color:var(--text-light);line-height:1.6;}
+
+/* actions */
+.res-actions{display:flex;flex-direction:column;gap:9px;margin-top:24px;}
+.btn-share{width:100%;padding:15px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .15s;}
+.btn-share:active{transform:scale(.97);}
+.btn-share.primary{background:var(--red);color:#FFF;box-shadow:0 4px 16px rgba(232,69,107,.25);}
+.btn-share.kakao{background:#FEE500;color:#191919;}
+.btn-share.ghost{background:#F3F3F3;color:var(--text);}
+
+.footer{text-align:center;padding:28px 0 16px;font-size:11px;color:#CCC;}
+
+/* loading */
+.loading{display:none;position:fixed;inset:0;background:rgba(255,249,250,.96);z-index:50;justify-content:center;align-items:center;flex-direction:column;gap:14px;}
+.loading.on{display:flex;}
+.spinner{width:44px;height:44px;border:4px solid #F0E0E4;border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-msg{font-size:14px;color:var(--text-light);font-weight:500;}
+
+/* toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(16px);background:#333;color:#FFF;padding:11px 22px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:100;white-space:nowrap;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ====== INTRO ====== -->
+<div id="intro">
+<div class="container">
+  <div class="intro-icon">✂️</div>
+  <div class="intro-badge">TOXIMETER</div>
+  <h1 class="intro-title"><em>손절</em>계산기</h1>
+  <p class="intro-sub">15개 질문으로 계산하는 나의 손절지수<br>이 관계, 계속해도 되는 걸까?</p>
+  <div class="intro-tags">
+    <span class="intro-tag">✂️ 손절지수 측정</span>
+    <span class="intro-tag">⏱ 3분</span>
+    <span class="intro-tag">📊 5개 영역 분석</span>
+  </div>
+  <p class="type-label">누구와의 관계를 계산할까요?</p>
+  <div class="type-grid">
+    <button class="type-btn" data-t="lover" onclick="pickType(this)"><span class="ic">💕</span><span class="lb">연인</span></button>
+    <button class="type-btn" data-t="friend" onclick="pickType(this)"><span class="ic">🤝</span><span class="lb">친구</span></button>
+    <button class="type-btn" data-t="family" onclick="pickType(this)"><span class="ic">👨‍👩‍👧</span><span class="lb">가족</span></button>
+    <button class="type-btn" data-t="work" onclick="pickType(this)"><span class="ic">💼</span><span class="lb">직장동료</span></button>
+  </div>
+  <button class="btn-go" id="btnGo" disabled onclick="startQuiz()">손절지수 계산하기</button>
+  <p class="intro-note">결과는 저장되지 않으며 재미로 참고해주세요 :)</p>
+</div>
+</div>
+
+<!-- ====== QUIZ ====== -->
+<div id="quiz">
+<div class="container">
+  <div class="prog-area">
+    <div class="prog-top">
+      <span class="prog-num" id="pNum">1 / 15</span>
+      <span class="prog-cat" id="pCat"></span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="pFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="qArea"></div>
+  <div class="nav-row">
+    <button class="btn-prev" id="btnPrev" onclick="goPrev()">← 이전</button>
+    <button class="btn-next" id="btnNext" disabled onclick="goNext()">다음 →</button>
+  </div>
+</div>
+</div>
+
+<!-- ====== RESULT ====== -->
+<div id="result">
+<div class="container">
+  <div class="res-card" id="resCard"></div>
+  <div class="footer">손절계산기 Toximeter · 결과는 참고용이며 전문 상담을 대체하지 않습니다.</div>
+</div>
+</div>
+
+<!-- Loading / Toast -->
+<div class="loading" id="loading"><div class="spinner"></div><div class="loading-msg">손절지수 계산 중...</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════ QUESTIONS — 4-point scale: -2, -1, +1, +2 (no neutral) ═══════
+const Q = [
+  // ── 소통 ──
+  { cat:'소통', icon:'💬',
+    text:'이 사람한테 카톡 보내기 전에 문장을 몇 번이나 고쳐 쓰나요?',
+    opts:[
+      {text:'그냥 생각나는 대로 보낸다', s:2},
+      {text:'가끔 한두 번 다듬는 정도', s:1},
+      {text:'꽤 여러 번 고친다, 반응이 신경 쓰여서', s:-1},
+      {text:'보내고 나서도 후회하고 삭제할까 고민한다', s:-2}
+    ]},
+  { cat:'소통', icon:'💬',
+    text:'이 사람이랑 싸우면 보통 어떻게 되나요?',
+    opts:[
+      {text:'좀 시끄럽지만 결국 대화로 풀린다', s:2},
+      {text:'시간이 걸려도 어떻게든 해결은 된다', s:1},
+      {text:'냉전이 길어지거나 한쪽이 참고 넘긴다', s:-1},
+      {text:'폭발하거나 아예 연락이 끊긴다', s:-2}
+    ]},
+  { cat:'소통', icon:'💬',
+    text:'"나 요즘 좀 힘들어"라고 말하면, 이 사람 반응은?',
+    opts:[
+      {text:'"무슨 일이야?" 진지하게 들어준다', s:2},
+      {text:'나름 공감은 해주는데 좀 형식적이다', s:1},
+      {text:'"다 힘들어~" 하고 넘기는 편이다', s:-1},
+      {text:'관심 없는 게 느껴지거나 오히려 자기 얘기를 한다', s:-2}
+    ]},
+
+  // ── 존중 ──
+  { cat:'존중', icon:'🤲',
+    text:'이 사람 앞에서 좋아하는 걸 자유롭게 말할 수 있나요?',
+    opts:[
+      {text:'뭘 좋아하든 관심 가져주고 존중해준다', s:2},
+      {text:'대체로 괜찮은데 가끔 "그걸 왜 좋아해?" 소리를 듣는다', s:1},
+      {text:'은근히 무시하거나 비웃는 느낌이 있다', s:-1},
+      {text:'눈치 보여서 아예 꺼내지 않게 됐다', s:-2}
+    ]},
+  { cat:'존중', icon:'🤲',
+    text:'이 사람이 내 시간이나 약속을 대하는 태도는?',
+    opts:[
+      {text:'내 시간도 소중하게 여겨준다', s:2},
+      {text:'대부분 지키는데 가끔 가볍게 여길 때가 있다', s:1},
+      {text:'자기 스케줄 위주로 돌아가는 느낌이다', s:-1},
+      {text:'약속을 자주 깨거나 당연하다는 듯이 바꾼다', s:-2}
+    ]},
+  { cat:'존중', icon:'🤲',
+    text:'이 사람이랑 있을 때, "나 지금 연기하고 있나?" 싶을 때가 있나요?',
+    opts:[
+      {text:'전혀, 완전 편하다', s:2},
+      {text:'가끔 맞추긴 하지만 스트레스는 아니다', s:1},
+      {text:'꽤 자주 다른 사람인 척하게 된다', s:-1},
+      {text:'이 사람 앞의 나는 진짜 내가 아니다', s:-2}
+    ]},
+
+  // ── 신뢰 ──
+  { cat:'신뢰', icon:'🔒',
+    text:'이 사람이 "진짜 미안해"라고 하면, 믿어지나요?',
+    opts:[
+      {text:'진심이라는 게 느껴진다', s:2},
+      {text:'대체로 믿지만 100%는 아니다', s:1},
+      {text:'"또 그 말이야" 싶다', s:-1},
+      {text:'사과 자체를 신뢰할 수 없다', s:-2}
+    ]},
+  { cat:'신뢰', icon:'🔒',
+    text:'내 실수나 창피한 경험을 이 사람한테 말할 수 있나요?',
+    opts:[
+      {text:'편하게 말한다. 놀리더라도 선이 있다', s:2},
+      {text:'가벼운 건 괜찮은데 진짜 아픈 건 조심스럽다', s:1},
+      {text:'나중에 무기로 쓸까봐 망설여진다', s:-1},
+      {text:'절대 안 보여준다, 위험하니까', s:-2}
+    ]},
+  { cat:'신뢰', icon:'🔒',
+    text:'이 사람이 내가 없는 자리에서 내 뒷얘기를 할 것 같나요?',
+    opts:[
+      {text:'절대 그럴 사람이 아니다', s:2},
+      {text:'아마 안 그러겠지, 대체로 믿는다', s:1},
+      {text:'솔직히 좀 걱정된다', s:-1},
+      {text:'이미 그러고 다닌다고 확신한다', s:-2}
+    ]},
+
+  // ── 에너지 ──
+  { cat:'에너지', icon:'🔋',
+    text:'이 사람 만나고 집에 오면 기분이 어때요?',
+    opts:[
+      {text:'기분 좋고 에너지가 충전된 느낌', s:2},
+      {text:'나쁘지 않다, 무난하게 괜찮았다', s:1},
+      {text:'왠지 피곤하고 기운이 빠진다', s:-1},
+      {text:'만나고 나면 우울하거나 자괴감이 든다', s:-2}
+    ]},
+  { cat:'에너지', icon:'🔋',
+    text:'이 사람한테서 연락이 오면 첫 반응은?',
+    opts:[
+      {text:'반갑다, 뭐라고 했을까 궁금하다', s:2},
+      {text:'평범하게 확인한다', s:1},
+      {text:'"또 뭐지..." 살짝 한숨이 나온다', s:-1},
+      {text:'알림 보는 것만으로 스트레스다', s:-2}
+    ]},
+  { cat:'에너지', icon:'🔋',
+    text:'이 관계에 쏟는 에너지, 공평하다고 느끼나요?',
+    opts:[
+      {text:'서로 비슷하게 노력하고 있다', s:2},
+      {text:'약간 차이는 있어도 감당 가능하다', s:1},
+      {text:'나만 끌어안고 가는 느낌이다', s:-1},
+      {text:'완전히 일방통행 관계다', s:-2}
+    ]},
+
+  // ── 미래 ──
+  { cat:'미래', icon:'🔮',
+    text:'1년 후에도 이 사람이 내 옆에 있을 것 같나요?',
+    opts:[
+      {text:'당연히 있을 것 같고, 그러면 좋겠다', s:2},
+      {text:'아마 있겠지, 나쁘지 않으니까', s:1},
+      {text:'잘 모르겠다, 솔직히 상상이 안 된다', s:-1},
+      {text:'없었으면 좋겠다', s:-2}
+    ]},
+  { cat:'미래', icon:'🔮',
+    text:'이 사람이 새벽에 급하게 도움을 요청하면?',
+    opts:[
+      {text:'무조건 달려간다', s:2},
+      {text:'상황 봐서 가능하면 간다', s:1},
+      {text:'솔직히 좀 귀찮을 것 같다', s:-1},
+      {text:'안 받거나 못 본 척 할 것 같다', s:-2}
+    ]},
+  { cat:'미래', icon:'🔮',
+    text:'이 관계가 오늘 끝나면, 솔직한 첫 감정은?',
+    opts:[
+      {text:'진심으로 슬프고 상실감이 클 것이다', s:2},
+      {text:'아쉽고 서운하겠지만 견딜 수 있다', s:1},
+      {text:'복잡하긴 한데... 솔직히 좀 홀가분할 듯', s:-1},
+      {text:'해방이다', s:-2}
+    ]}
+];
+
+const CATS=['소통','존중','신뢰','에너지','미래'];
+const CAT_ICONS=['💬','🤲','🔒','🔋','🔮'];
+const TYPE_LABELS={lover:'연인',friend:'친구',family:'가족',work:'직장동료'};
+
+// ═══════ GRADE TABLE ═══════
+// Total range: -30 ~ +30 (no 0 possible with 4-point scale)
+// 손절지수 = (30 - total) / 60 * 100 → high = bad
+const GRADES=[
+  { min:19, max:30, emoji:'🌟', label:'꽃길',
+    color:'#4D96FF', bg:'#F0F5FF',
+    hook:'이 사람, <em>절대 놓지 마세요</em>',
+    sub:'손절은 무슨... 평생 가져가야 할 관계입니다',
+    rx:[
+      {h:'💎 당연하게 여기지 마세요',b:'익숙해질수록 감사를 잊기 쉬워요. 가끔 "고마워"를 말해주세요.'},
+      {h:'🎁 가끔은 서프라이즈',b:'예상 못한 작은 행동이 관계에 활력을 줍니다.'},
+    ]},
+  { min:1, max:18, emoji:'💚', label:'양호',
+    color:'#6BCB77', bg:'#F0FFF4',
+    hook:'나쁘지 않아요,<br>근데 <em>방심은 금물</em>',
+    sub:'괜찮은 관계지만, 작은 균열은 빨리 메우세요',
+    rx:[
+      {h:'💬 불편한 건 바로 말하기',b:'참다가 터지면 돌이킬 수 없어요. 작은 것부터 솔직해지세요.'},
+      {h:'📅 질 높은 시간 만들기',b:'폰 없이 집중해서 대화하는 시간을 주 1회 만들어보세요.'},
+    ]},
+  { min:-18, max:0, emoji:'⚠️', label:'경고',
+    color:'#FF8A5C', bg:'#FFF5F0',
+    hook:'<em>노란불</em> 켜졌습니다',
+    sub:'지금 안 바꾸면 6개월 안에 터질 수 있어요',
+    rx:[
+      {h:'🗣 나-전달법 시도',b:'"넌 왜 맨날~" 대신 "나는 이럴 때 이런 기분이야"로 바꿔보세요.'},
+      {h:'⏰ 3개월 기한 설정',b:'노력 기간을 정하세요. 변화가 없으면 그때 결단을 내리세요.'},
+    ]},
+  { min:-30, max:-19, emoji:'🚨', label:'위험',
+    color:'#E8456B', bg:'#FFF0F3',
+    hook:'<em>지금 당장</em> 거리를 두세요',
+    sub:'이건 노력으로 될 수준이 아닐 수 있어요',
+    rx:[
+      {h:'🛑 물리적 거리두기',b:'만남 빈도를 확 줄이세요. 공간이 있어야 판단이 됩니다.'},
+      {h:'📝 감정 기록',b:'이 사람 관련 감정을 매일 한 줄씩 적어보세요. 패턴이 보일 거예요.'},
+      {h:'🗣 제3자와 대화',b:'혼자 안고 있지 마세요. 상담사든 친구든, 바깥 시선을 빌려오세요.'},
+    ]}
+];
+
+// ═══════ STATE ═══════
+let relType='',curQ=0,ans=Array(Q.length).fill(null);
+
+// ═══════ INTRO ═══════
+function pickType(el){
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  relType=el.dataset.t;
+  document.getElementById('btnGo').disabled=false;
+  gtag('event','select_type',{type:relType});
+}
+function startQuiz(){
+  if(!relType)return;
+  document.getElementById('intro').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  curQ=0;ans.fill(null);renderQ();
+  gtag('event','quiz_start',{type:relType});
+}
+
+// ═══════ QUIZ ═══════
+function renderQ(){
+  const q=Q[curQ],pct=((curQ+1)/Q.length*100).toFixed(1);
+  document.getElementById('pNum').textContent=`${curQ+1} / ${Q.length}`;
+  document.getElementById('pCat').textContent=q.cat;
+  document.getElementById('pFill').style.width=pct+'%';
+  const sel=ans[curQ];
+  let h=`<div class="q-card"><span class="q-badge">${q.icon} ${q.cat}</span><p class="q-text">${q.text}</p><div class="opts">`;
+  q.opts.forEach((o,i)=>{h+=`<button class="opt${sel===i?' on':''}" onclick="pick(${i})">${o.text}</button>`;});
+  h+=`</div></div>`;
+  document.getElementById('qArea').innerHTML=h;
+  document.getElementById('btnPrev').style.visibility=curQ===0?'hidden':'visible';
+  document.getElementById('btnNext').textContent=curQ===Q.length-1?'결과 보기 →':'다음 →';
+  document.getElementById('btnNext').disabled=sel===null;
+}
+function pick(i){
+  ans[curQ]=i;
+  document.querySelectorAll('.opt').forEach((b,j)=>b.classList.toggle('on',j===i));
+  document.getElementById('btnNext').disabled=false;
+}
+function goPrev(){if(curQ>0){curQ--;renderQ();}}
+function goNext(){
+  if(ans[curQ]===null)return;
+  if(curQ<Q.length-1){curQ++;renderQ();window.scrollTo({top:0,behavior:'smooth'});}
+  else showResult();
+}
+
+// ═══════ RESULT ═══════
+function showResult(){
+  document.getElementById('quiz').style.display='none';
+  document.getElementById('loading').classList.add('on');
+  setTimeout(()=>{
+    document.getElementById('loading').classList.remove('on');
+    document.getElementById('result').style.display='block';
+    buildResult();
+    window.scrollTo({top:0,behavior:'smooth'});
+  },2000);
+}
+
+function buildResult(){
+  let total=0;const catS=[0,0,0,0,0];
+  Q.forEach((q,i)=>{const s=q.opts[ans[i]].s;total+=s;catS[CATS.indexOf(q.cat)]+=s;});
+
+  // 손절지수 (0~100, 높을수록 손절 필요)
+  const toxPct=Math.round((30-total)/60*100);
+  const grade=GRADES.find(g=>total>=g.min&&total<=g.max);
+
+  // 한 줄 처방
+  let advice='';
+  if(toxPct>=80) advice='지금 바로 거리를 두세요';
+  else if(toxPct>=60) advice='3개월 안에 진지하게 고민하세요';
+  else if(toxPct>=40) advice='관심을 갖고 지켜보세요';
+  else advice='이 관계를 소중히 지켜가세요';
+
+  // URL hash
+  const hd={t:relType,a:ans.join(''),s:total};
+  window.location.hash=btoa(JSON.stringify(hd));
+
+  // OG update
+  document.getElementById('og-title').content=`손절지수 ${toxPct}% — ${grade.emoji} ${TYPE_LABELS[relType]} 관계`;
+  document.getElementById('og-description').content=advice;
+
+  let h=`
+    <div class="res-emoji">${grade.emoji}</div>
+    <div class="res-badge" style="background:${grade.bg};color:${grade.color}">${TYPE_LABELS[relType]} · ${grade.label}</div>
+    <h2 class="res-hook">${grade.hook}</h2>
+    <p class="res-sub">${grade.sub}</p>
+
+    <div class="toxicity">
+      <div class="tox-num" style="color:${grade.color}">${toxPct}<span style="font-size:22px;font-weight:500">%</span></div>
+      <div class="tox-label">손절지수</div>
+      <div class="tox-gauge">
+        <div class="tox-gauge-bg"></div>
+        <div class="tox-ptr" id="toxPtr" style="left:50%"></div>
+      </div>
+      <div class="tox-labels"><span>안전</span><span>주의</span><span>위험</span></div>
+      <p style="margin-top:16px;font-size:14px;font-weight:700;color:${grade.color}">📋 ${advice}</p>
+    </div>
+
+    <div class="res-actions">
+      <button class="btn-share primary" onclick="copyLink()">✂️ 손절지수 공유하기</button>
+      <button class="btn-share kakao" onclick="shareKakao()">💬 카카오톡 공유</button>
+      <button class="btn-share ghost" onclick="retry()">🔄 다른 관계도 계산하기</button>
+    </div>
+
+    <div class="detail-toggle" id="detailToggle" onclick="toggleDetail()">
+      📊 영역별 상세 분석 & 처방전 <span class="arrow">▼</span>
+    </div>
+    <div class="detail-body" id="detailBody">
+      <div class="bd-title">영역별 분석</div>`;
+
+  CATS.forEach((c,i)=>{
+    const raw=catS[i]; // -6 ~ +6
+    const pct=Math.round((raw+6)/12*100);
+    const col=pct>=65?'#6BCB77':pct>=35?'#FFB830':'#E8456B';
+    h+=`<div class="bd-item"><span class="bd-ic">${CAT_ICONS[i]}</span><div class="bd-info"><div class="bd-name">${c}</div><div class="bd-barw"><div class="bd-bar" style="width:0%;background:${col}" data-w="${pct}%"></div></div></div><span class="bd-sc" style="color:${col}">${pct}</span></div>`;
+  });
+
+  h+=`<div class="rx-title">💊 맞춤 처방전</div>`;
+  grade.rx.forEach(r=>{h+=`<div class="rx"><h4>${r.h}</h4><p>${r.b}</p></div>`;});
+
+  h+=`</div>`;
+  document.getElementById('resCard').innerHTML=h;
+
+  // Animate
+  setTimeout(()=>{
+    document.getElementById('toxPtr').style.left=toxPct+'%';
+    document.querySelectorAll('.bd-bar').forEach(b=>{b.style.width=b.dataset.w;});
+  },150);
+
+  gtag('event','quiz_complete',{type:relType,score:total,toxPct,grade:grade.label});
+}
+
+function toggleDetail(){
+  document.getElementById('detailToggle').classList.toggle('open');
+  document.getElementById('detailBody').classList.toggle('open');
+  setTimeout(()=>{document.querySelectorAll('.bd-bar').forEach(b=>{b.style.width=b.dataset.w;});},100);
+}
+
+// ═══════ SHARE ═══════
+function copyLink(){
+  navigator.clipboard.writeText(window.location.href).then(()=>{
+    toast('링크 복사 완료! ✂️');gtag('event','share',{method:'link'});
+  }).catch(()=>toast('복사 실패 😢'));
+}
+function shareKakao(){
+  window.open(`https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(window.location.href)}`,'_blank','width=480,height=640');
+  gtag('event','share',{method:'kakao'});
+}
+function retry(){
+  window.location.hash='';
+  document.getElementById('result').style.display='none';
+  document.getElementById('intro').style.display='flex';
+  ans.fill(null);curQ=0;
+  gtag('event','retry');
+}
+function toast(m){
+  const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2500);
+}
+
+// ═══════ HASH RESTORE ═══════
+window.addEventListener('load',()=>{
+  const h=window.location.hash.slice(1);if(!h)return;
+  try{
+    const d=JSON.parse(atob(h));
+    if(d.t&&d.a!=null){
+      relType=d.t;
+      for(let i=0;i<d.a.length;i++) ans[i]=parseInt(d.a[i]);
+      document.getElementById('intro').style.display='none';
+      document.getElementById('result').style.display='block';
+      buildResult();
+    }
+  }catch(e){}
+});
+</script>
+</body>
+</html>
