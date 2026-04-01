@@ -7,7 +7,7 @@
 
 <meta property="og:title" content="손절계산기 — 이 관계, 계속해도 될까?" id="og-title">
 <meta property="og:description" content="15개 질문으로 계산하는 나의 손절지수. 당신의 관계는 몇 %?" id="og-description">
-<meta property="og:image" content="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=1200&h=630&fit=crop" id="og-image">
+<meta property="og:image" content="https://toximeter.vercel.app/og-image.png" id="og-image">
 <meta property="og:type" content="website">
 <meta property="og:url" content="" id="og-url">
 <meta name="twitter:card" content="summary_large_image">
@@ -42,6 +42,8 @@ body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);co
 .intro-tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:28px;}
 .intro-tag{background:#F5F0F1;font-size:12px;font-weight:500;padding:5px 12px;border-radius:16px;color:var(--text-light);}
 .type-label{font-size:13px;color:var(--text-light);font-weight:500;margin-bottom:10px;}
+.name-input{width:100%;padding:14px 18px;border:2px solid #EEE;border-radius:14px;font-size:15px;font-family:inherit;text-align:center;outline:none;transition:border-color .2s;margin-bottom:4px;}
+.name-input:focus{border-color:var(--red);background:var(--red-light);}
 .type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px;width:100%;}
 .type-btn{padding:14px 4px;border:2px solid #EEE;border-radius:14px;background:#FFF;cursor:pointer;text-align:center;transition:all .2s;}
 .type-btn:hover,.type-btn.on{border-color:var(--red);background:var(--red-light);}
@@ -123,7 +125,7 @@ body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);co
 .btn-share{width:100%;padding:15px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .15s;}
 .btn-share:active{transform:scale(.97);}
 .btn-share.primary{background:var(--red);color:#FFF;box-shadow:0 4px 16px rgba(232,69,107,.25);}
-.btn-share.kakao{background:#FEE500;color:#191919;}
+
 .btn-share.ghost{background:#F3F3F3;color:var(--text);}
 
 .footer{text-align:center;padding:28px 0 16px;font-size:11px;color:#CCC;}
@@ -154,7 +156,9 @@ body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);co
     <span class="intro-tag">⏱ 3분</span>
     <span class="intro-tag">📊 5개 영역 분석</span>
   </div>
-  <p class="type-label">누구와의 관계를 계산할까요?</p>
+  <p class="type-label">상대의 이름(또는 별명)을 알려주세요</p>
+  <input type="text" class="name-input" id="nameInput" placeholder="예: 민수, 그 선배, 전남친..." maxlength="10" oninput="checkReady()">
+  <p class="type-label" style="margin-top:20px">누구와의 관계를 계산할까요?</p>
   <div class="type-grid">
     <button class="type-btn" data-t="lover" onclick="pickType(this)"><span class="ic">💕</span><span class="lb">연인</span></button>
     <button class="type-btn" data-t="friend" onclick="pickType(this)"><span class="ic">🤝</span><span class="lb">친구</span></button>
@@ -374,18 +378,23 @@ const GRADES=[
 ];
 
 // ═══════ STATE ═══════
-let relType='',curQ=0,ans=Array(Q.length).fill(null);
+let relType='',relName='',curQ=0,ans=Array(Q.length).fill(null);
 
 // ═══════ INTRO ═══════
+function checkReady(){
+  const name=document.getElementById('nameInput').value.trim();
+  document.getElementById('btnGo').disabled=!(name&&relType);
+}
 function pickType(el){
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
   relType=el.dataset.t;
-  document.getElementById('btnGo').disabled=false;
+  checkReady();
   gtag('event','select_type',{type:relType});
 }
 function startQuiz(){
-  if(!relType)return;
+  relName=document.getElementById('nameInput').value.trim()||'이 사람';
+  if(!relType||!relName)return;
   document.getElementById('intro').style.display='none';
   document.getElementById('quiz').style.display='block';
   curQ=0;ans.fill(null);renderQ();
@@ -399,7 +408,8 @@ function renderQ(){
   document.getElementById('pCat').textContent=q.cat;
   document.getElementById('pFill').style.width=pct+'%';
   const sel=ans[curQ];
-  let h=`<div class="q-card"><span class="q-badge">${q.icon} ${q.cat}</span><p class="q-text">${q.text}</p><div class="opts">`;
+  const qText=q.text.replace(/이 사람/g,relName);
+  let h=`<div class="q-card"><span class="q-badge">${q.icon} ${q.cat}</span><p class="q-text">${qText}</p><div class="opts">`;
   q.opts.forEach((o,i)=>{h+=`<button class="opt${sel===i?' on':''}" onclick="pick(${i})">${o.text}</button>`;});
   h+=`</div></div>`;
   document.getElementById('qArea').innerHTML=h;
@@ -447,17 +457,18 @@ function buildResult(){
   else advice='이 관계를 소중히 지켜가세요';
 
   // URL hash
-  const hd={t:relType,a:ans.join(''),s:total};
+  const hd={t:relType,a:ans.join(''),s:total,n:relName};
   window.location.hash=btoa(JSON.stringify(hd));
 
   // OG update
-  document.getElementById('og-title').content=`손절지수 ${toxPct}% — ${grade.emoji} ${TYPE_LABELS[relType]} 관계`;
+  document.getElementById('og-title').content=`${relName} 손절지수 ${toxPct}% — ${grade.emoji} ${TYPE_LABELS[relType]}`;
   document.getElementById('og-description').content=advice;
 
+  const hookText=grade.hook.replace(/이 사람/g,relName);
   let h=`
     <div class="res-emoji">${grade.emoji}</div>
-    <div class="res-badge" style="background:${grade.bg};color:${grade.color}">${TYPE_LABELS[relType]} · ${grade.label}</div>
-    <h2 class="res-hook">${grade.hook}</h2>
+    <div class="res-badge" style="background:${grade.bg};color:${grade.color}">${TYPE_LABELS[relType]} ${relName} · ${grade.label}</div>
+    <h2 class="res-hook">${hookText}</h2>
     <p class="res-sub">${grade.sub}</p>
 
     <div class="toxicity">
@@ -473,7 +484,6 @@ function buildResult(){
 
     <div class="res-actions">
       <button class="btn-share primary" onclick="copyLink()">✂️ 손절지수 공유하기</button>
-      <button class="btn-share kakao" onclick="shareKakao()">💬 카카오톡 공유</button>
       <button class="btn-share ghost" onclick="retry()">🔄 다른 관계도 계산하기</button>
     </div>
 
@@ -512,15 +522,19 @@ function toggleDetail(){
 }
 
 // ═══════ SHARE ═══════
+function getShareUrl(){
+  // API route URL for dynamic OG tags
+  let total=0;
+  Q.forEach((q,i)=>{total+=q.opts[ans[i]].s;});
+  return `${window.location.origin}/api/share?t=${relType}&s=${total}&a=${ans.join('')}&n=${encodeURIComponent(relName)}`;
+}
 function copyLink(){
-  navigator.clipboard.writeText(window.location.href).then(()=>{
+  const url=getShareUrl();
+  navigator.clipboard.writeText(url).then(()=>{
     toast('링크 복사 완료! ✂️');gtag('event','share',{method:'link'});
   }).catch(()=>toast('복사 실패 😢'));
 }
-function shareKakao(){
-  window.open(`https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(window.location.href)}`,'_blank','width=480,height=640');
-  gtag('event','share',{method:'kakao'});
-}
+
 function retry(){
   window.location.hash='';
   document.getElementById('result').style.display='none';
@@ -541,6 +555,7 @@ window.addEventListener('load',()=>{
     const d=JSON.parse(atob(h));
     if(d.t&&d.a!=null){
       relType=d.t;
+      relName=d.n||'이 사람';
       for(let i=0;i<d.a.length;i++) ans[i]=parseInt(d.a[i]);
       document.getElementById('intro').style.display='none';
       document.getElementById('result').style.display='block';
