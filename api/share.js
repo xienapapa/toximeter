@@ -36,7 +36,7 @@ export default function handler(req, res) {
 
   // Restore hash for redirect
   const hashData = JSON.stringify({ t, a: a || '', s: score, n: name || '이 사람' });
-  const hash = Buffer.from(hashData).toString('base64');
+  const hash = Buffer.from(encodeURIComponent(hashData)).toString('base64');
   const redirectUrl = `${siteUrl}/#${hash}`;
 
   const html = `<!DOCTYPE html>
