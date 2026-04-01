@@ -125,7 +125,6 @@ body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);co
 .btn-share{width:100%;padding:15px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .15s;}
 .btn-share:active{transform:scale(.97);}
 .btn-share.primary{background:var(--red);color:#FFF;box-shadow:0 4px 16px rgba(232,69,107,.25);}
-
 .btn-share.ghost{background:#F3F3F3;color:var(--text);}
 
 .footer{text-align:center;padding:28px 0 16px;font-size:11px;color:#CCC;}
@@ -201,6 +200,10 @@ body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);co
 <div class="toast" id="toast"></div>
 
 <script>
+// ═══════ UTILS: safe base64 for Unicode ═══════
+function toBase64(str){return btoa(encodeURIComponent(str));}
+function fromBase64(str){return decodeURIComponent(atob(str));}
+
 // ═══════ QUESTIONS — 4-point scale: -2, -1, +1, +2 (no neutral) ═══════
 const Q = [
   // ── 소통 ──
@@ -339,8 +342,6 @@ const CAT_ICONS=['💬','🤲','🔒','🔋','🔮'];
 const TYPE_LABELS={lover:'연인',friend:'친구',family:'가족',work:'직장동료'};
 
 // ═══════ GRADE TABLE ═══════
-// Total range: -30 ~ +30 (no 0 possible with 4-point scale)
-// 손절지수 = (30 - total) / 60 * 100 → high = bad
 const GRADES=[
   { min:19, max:30, emoji:'🌟', label:'꽃길',
     color:'#4D96FF', bg:'#F0F5FF',
@@ -445,20 +446,18 @@ function buildResult(){
   let total=0;const catS=[0,0,0,0,0];
   Q.forEach((q,i)=>{const s=q.opts[ans[i]].s;total+=s;catS[CATS.indexOf(q.cat)]+=s;});
 
-  // 손절지수 (0~100, 높을수록 손절 필요)
   const toxPct=Math.round((30-total)/60*100);
   const grade=GRADES.find(g=>total>=g.min&&total<=g.max);
 
-  // 한 줄 처방
   let advice='';
   if(toxPct>=80) advice='지금 바로 거리를 두세요';
   else if(toxPct>=60) advice='3개월 안에 진지하게 고민하세요';
   else if(toxPct>=40) advice='관심을 갖고 지켜보세요';
   else advice='이 관계를 소중히 지켜가세요';
 
-  // URL hash
+  // URL hash (safe for Unicode)
   const hd={t:relType,a:ans.join(''),s:total,n:relName};
-  window.location.hash=btoa(JSON.stringify(hd));
+  window.location.hash=toBase64(JSON.stringify(hd));
 
   // OG update
   document.getElementById('og-title').content=`${relName} 손절지수 ${toxPct}% — ${grade.emoji} ${TYPE_LABELS[relType]}`;
@@ -494,7 +493,7 @@ function buildResult(){
       <div class="bd-title">영역별 분석</div>`;
 
   CATS.forEach((c,i)=>{
-    const raw=catS[i]; // -6 ~ +6
+    const raw=catS[i];
     const pct=Math.round((raw+6)/12*100);
     const col=pct>=65?'#6BCB77':pct>=35?'#FFB830':'#E8456B';
     h+=`<div class="bd-item"><span class="bd-ic">${CAT_ICONS[i]}</span><div class="bd-info"><div class="bd-name">${c}</div><div class="bd-barw"><div class="bd-bar" style="width:0%;background:${col}" data-w="${pct}%"></div></div></div><span class="bd-sc" style="color:${col}">${pct}</span></div>`;
@@ -506,7 +505,6 @@ function buildResult(){
   h+=`</div>`;
   document.getElementById('resCard').innerHTML=h;
 
-  // Animate
   setTimeout(()=>{
     document.getElementById('toxPtr').style.left=toxPct+'%';
     document.querySelectorAll('.bd-bar').forEach(b=>{b.style.width=b.dataset.w;});
@@ -523,7 +521,6 @@ function toggleDetail(){
 
 // ═══════ SHARE ═══════
 function getShareUrl(){
-  // API route URL for dynamic OG tags
   let total=0;
   Q.forEach((q,i)=>{total+=q.opts[ans[i]].s;});
   return `${window.location.origin}/api/share?t=${relType}&s=${total}&a=${ans.join('')}&n=${encodeURIComponent(relName)}`;
@@ -552,7 +549,7 @@ function toast(m){
 window.addEventListener('load',()=>{
   const h=window.location.hash.slice(1);if(!h)return;
   try{
-    const d=JSON.parse(atob(h));
+    const d=JSON.parse(fromBase64(h));
     if(d.t&&d.a!=null){
       relType=d.t;
       relName=d.n||'이 사람';
